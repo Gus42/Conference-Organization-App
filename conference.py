@@ -611,7 +611,7 @@ class ConferenceApi(remote.Service):
     def _getConferenceSessions(self, request):
         """
         args: websafeConferenceKey of a Conference
-        return: All sessions of that Conference
+        returns: All sessions of that Conference
         """
         conf = ndb.Key(urlsafe=request.websafeConferenceKey).get()
         # check that conference exists
@@ -624,36 +624,52 @@ class ConferenceApi(remote.Service):
         sessions = Session.query(ancestor=c_key)
         return sessions
 
-    def _createConferenceObject(self, request):
-        """Create or update Conference object, returning ConferenceForm/request."""
-        # preload necessary data items
+    def _createSessionObject(self, request):
+        """Create a session
+        args: A SessionForm and the websafeConferenceKey of the Conference
+        returns: A filled SessionForm, with a websafekey of the session
+        """
+        # Check if user is logged in
         user = endpoints.get_current_user()
         if not user:
             raise endpoints.UnauthorizedException('Authorization required')
         user_id = getUserId(user)
 
+         # Check that session ha a name
         if not request.name:
-            raise endpoints.BadRequestException("Conference 'name' field required")
+            raise endpoints.BadRequestException("Session 'name' field required")
 
-        # copy ConferenceForm/ProtoRPC Message into dict
+        # Check that conference exists
+        conf = ndb.Key(urlsafe=request.websafeConferenceKey).get()
+        if not conf:
+            raise endpoints.NotFoundException('No conference found with key: %s' % request.websafeConferenceKey)
+
+        # Check that user is the owner of the conference
+        if user_id != conf.organizerUserId:
+            raise endpoints.ForbiddenException('Only the owner can update the conference.')
+
+        # copy SessionForm/ProtoRPC Message into dict
         data = {field.name: getattr(request, field.name) for field in request.all_fields()}
         del data['websafeKey']
-        del data['organizerDisplayName']
+        del data['websafeConfKey']
+        del data['websafeConferenceKey']
 
         # add default values for those missing (both data model & outbound Message)
         for df in DEFAULTS:
             if data[df] in (None, []):
-                data[df] = DEFAULTS[df]
-                setattr(request, df, DEFAULTS[df])
+                data[df] = DEFAULTS_SESSION[df]
+                setattr(request, df, DEFAULTS_SESSION[df])
 
-        # convert dates from strings to Date objects; set month based on start_date
-        if data['startDate']:
-            data['startDate'] = datetime.strptime(data['startDate'][:10], "%Y-%m-%d").date()
-            data['month'] = data['startDate'].month
-        else:
-            data['month'] = 0
-        if data['endDate']:
-            data['endDate'] = datetime.strptime(data['endDate'][:10], "%Y-%m-%d").date()
+        # Convert date from string to Date objects
+        if data['date']:
+            data['date'] = datetime.strptime(data['date'][:10], "%Y-%m-%d").date()
+        # Convert startTime and duration from string to Time objects
+        if data['startTime']:
+            data['startTime'] = datetime.strptime(data['startTime'][:5],"%H:%M").time()
+        if data['duration']:
+            data['duration'] = datetime.strptime(data['duration'][:5],"%H:%M").time()
+
+        #TODO: About the speaker
 
         # set seatsAvailable to be same as maxAttendees on creation
         if data["maxAttendees"] > 0:
