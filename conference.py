@@ -87,13 +87,22 @@ CONF_POST_REQUEST = endpoints.ResourceContainer(
     websafeConferenceKey=messages.StringField(1),
 )
 
+DEFAULTS_SESSION = {
+    "highlights": ["Default", "Hightlight"],
+    "location": "Default Location",
+    "typeOfSession": ["Default"],
+    "date": "2016-01-01",
+    "startTime": "00:00",
+    "duration": "00:00"
+}
+
 SESSION_GET_REQUEST = endpoints.ResourceContainer(
     message_types.VoidMessage,
     websafeConferenceKey=messages.StringField(1),
 )
 
 SESSION_BY_TYPE_GET_REQUEST = endpoints.ResourceContainer(
-    typeOfSession=messages.EnumField(TypeOfSession, 1),
+    typeOfSession=messages.StringField(1),
     websafeConferenceKey=messages.StringField(2),
 )
 
@@ -611,14 +620,25 @@ class ConferenceApi(remote.Service):
         return sessions
 
     @endpoints.method(SESSION_GET_REQUEST, SessionForms,
-                      path='conference/{websafeConferenceKey}/sessions',
-                      http_method='GET', name='getConferenceSessions')
+            path='conference/{websafeConferenceKey}/sessions',
+            http_method='GET', name='getConferenceSessions')
     def getConferenceSessions(self, request):
         """Gets all the sessions in the given conference."""
         sessions = self._getConferenceSessions(request)
         return SessionForms(
-            items=[self._copySessionToForm(sess) for sess in
-                   sessions]
+            items=[self._copySessionToForm(sess) for sess in sessions]
+        )
+
+    @endpoints.method(SESSION_BY_TYPE_GET_REQUEST, SessionForms,
+            path='conference/{websafeConferenceKey}/sessions/byType',
+            http_method='GET', name='getConferenceSessionsByType')
+    def getConferenceSessionsByType(self, request):
+        """ Gets all the sessions of a specified type, in the given conference."""
+        sessions = self._getConferenceSessions(request)
+        # filter by requested typeOfSession
+        sessions = sessions.filter(Session.typeOfSession == request.typeOfSession)
+        return SessionForms(
+            items=[self._copySessionToForm(sess) for sess in sessions]
         )
 
 api = endpoints.api_server([ConferenceApi]) # register API
