@@ -556,6 +556,55 @@ class ConferenceApi(remote.Service):
         )
 
 # - - - Sessions - - - - - - - - - - - - - - - - - - - -
+    def _copyConferenceToForm(self, conf, displayName):
+        """Copy relevant fields from Conference to ConferenceForm."""
+        cf = ConferenceForm()
+        for field in cf.all_fields():
+            if hasattr(conf, field.name):
+                # convert Date to date string; just copy others
+                if field.name.endswith('Date'):
+                    setattr(cf, field.name, str(getattr(conf, field.name)))
+                else:
+                    setattr(cf, field.name, getattr(conf, field.name))
+            elif field.name == "websafeKey":
+                setattr(cf, field.name, conf.key.urlsafe())
+        if displayName:
+            setattr(cf, 'organizerDisplayName', displayName)
+        cf.check_initialized()
+        return cf
+
+    def _copySessionToForm(self, sess):
+        # copy relevant fields from Session to SessionForm
+        # Convert date, duration and startTime to string
+        sf = SessionForm()
+        for field in sf.all_fields():
+            if hasattr(sess, field.name):
+                # convert t-shirt string to Enum; just copy others
+                if field.name == 'typeOfSession':
+                    setattr(sf, field.name, getattr(TypeOfSession, getattr(
+                        sess, field.name)))
+                # convert date to date string;
+                elif field.name == 'date':
+                    setattr(sf, field.name, str(getattr(sess, field.name)))
+                # convert startTime to time string;
+                elif field.name.endswith('Time'):
+                    setattr(sf, field.name, str(getattr(sess, field.name)))
+                # convert startTime to time string;
+                elif field.name == 'duration':
+                    setattr(sf, field.name, str(getattr(sess, field.name)))
+                # convert list of Speaker keys to list of strings:
+                elif field.name == 'speakers':
+                    setattr(sf, field.name,
+                            [str(s.get().name) for s in sess.speakers])
+                # just copy other fields
+                else:
+                    setattr(sf, field.name, getattr(sess, field.name))
+            elif field.name == "websafeKey":
+                setattr(sf, field.name, sess.key.urlsafe())
+            elif field.name == "websafeConfKey":
+                setattr(sf, field.name, sess.key.parent().urlsafe())
+        sf.check_initialized()
+        return sf
 
     @endpoints.method(CONF_GET_REQUEST, SessionForms,
             path='getConferenceSessions/',
