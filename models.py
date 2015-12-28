@@ -134,11 +134,15 @@ class SessionForm(messages.Message):
     speaker         = messages.StringField(3, repeated=True)
     duration        = messages.StringField(4)
     typeOfSession   = messages.StringField(5, repeated=True)
-    date            = messages.StringField(6) #DateTimeField()
-    startTime       = messages.StringField(7) #DateTimeField()
+    date            = messages.StringField(6)   # DateTimeField()
+    startTime       = messages.StringField(7)   # DateTimeField()
     location        = messages.StringField(8)
     websafeKey      = messages.StringField(9)
-    websafeConfKey  = messages.StringField(10)
+    websafeConfKey  = messages.StringField(10)  # The Parent key
+
+# For keys that were created with a parent, the parent() method
+# returns a key representing the parent entity:
+# nanodegree_key = new_project.key.parent()
 
 class SessionForms(messages.Message):
     """SessionForms -- multiple Session form messages"""
