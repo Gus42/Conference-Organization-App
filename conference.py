@@ -625,7 +625,7 @@ class ConferenceApi(remote.Service):
         return sessions
 
     def _createSessionObject(self, request):
-        """Create a session
+        """
         args: A SessionForm and the websafeConferenceKey of the Conference
         returns: A filled SessionForm, with a websafekey of the session
         """
@@ -669,26 +669,17 @@ class ConferenceApi(remote.Service):
         if data['duration']:
             data['duration'] = datetime.strptime(data['duration'][:5],"%H:%M").time()
 
-        #TODO: About the speaker
+        #TODO: About the speaker if...
 
-        # set seatsAvailable to be same as maxAttendees on creation
-        if data["maxAttendees"] > 0:
-            data["seatsAvailable"] = data["maxAttendees"]
-        # generate Profile Key based on user ID and Conference
-        # ID based on Profile key get Conference key from ID
-        p_key = ndb.Key(Profile, user_id)
-        c_id = Conference.allocate_ids(size=1, parent=p_key)[0]
-        c_key = ndb.Key(Conference, c_id, parent=p_key)
-        data['key'] = c_key
-        data['organizerUserId'] = request.organizerUserId = user_id
+        # generate Conf Key based on conf ID and Session
+        # ID based on Conf key get Session key from ID
+        conf_key = conf.key
+        sess_id = Session.allocate_ids(size=1, parent=conf_key)[0]
+        sess_key = ndb.Key(Session, sess_id, parent=conf_key)
+        data['key'] = sess_key
 
-        # create Conference, send email to organizer confirming
-        # creation of Conference & return (modified) ConferenceForm
-        Conference(**data).put()
-        taskqueue.add(params={'email': user.email(),
-            'conferenceInfo': repr(request)},
-            url='/tasks/send_confirmation_email'
-        )
+        # create Conference & return (modified) SessionForm
+        Session(**data).put()
         return request
 
     @endpoints.method(SESSION_GET_REQUEST, SessionForms,
