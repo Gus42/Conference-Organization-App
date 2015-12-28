@@ -594,6 +594,22 @@ class ConferenceApi(remote.Service):
         sf.check_initialized()
         return sf
 
+    def _getConferenceSessions(self, request):
+        """
+        args: websafeConferenceKey of a Conference
+        return: All sessions of that Conference
+        """
+        conf = ndb.Key(urlsafe=request.websafeConferenceKey).get()
+        # check that conference exists
+        if not conf:
+            raise endpoints.NotFoundException(
+                'No conference found with key: %s' % request.websafeConferenceKey)
+        # get the conference key
+        c_key = conf.key
+        # create ancestor query for this user
+        sessions = Session.query(ancestor=c_key)
+        return sessions
+
     @endpoints.method(SESSION_GET_REQUEST, SessionForms,
                       path='conference/{websafeConferenceKey}/sessions',
                       http_method='GET', name='getConferenceSessions')
