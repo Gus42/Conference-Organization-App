@@ -655,7 +655,7 @@ class ConferenceApi(remote.Service):
         del data['websafeConferenceKey']
 
         # add default values for those missing (both data model & outbound Message)
-        for df in DEFAULTS:
+        for df in DEFAULTS_SESSION:
             if data[df] in (None, []):
                 data[df] = DEFAULTS_SESSION[df]
                 setattr(request, df, DEFAULTS_SESSION[df])
@@ -680,7 +680,8 @@ class ConferenceApi(remote.Service):
 
         # create Conference & return (modified) SessionForm
         Session(**data).put()
-        return request
+        sess = sess_key.get()
+        return self._copySessionToForm(sess)
 
     @endpoints.method(SESSION_GET_REQUEST, SessionForms,
             path='conference/{websafeConferenceKey}/sessions',
