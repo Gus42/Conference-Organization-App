@@ -106,6 +106,11 @@ SESSION_BY_TYPE_GET_REQUEST = endpoints.ResourceContainer(
     websafeConferenceKey=messages.StringField(2),
 )
 
+SESSION_BY_SPEAKER_GET_REQUEST = endpoints.ResourceContainer(
+    speaker=messages.StringField(1),
+    websafeConferenceKey=messages.StringField(2),
+)
+
 SESSION_POST_REQUEST = endpoints.ResourceContainer(
     SessionForm,
     websafeConferenceKey=messages.StringField(1),
