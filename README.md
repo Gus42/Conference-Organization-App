@@ -33,7 +33,17 @@ App Engine application for the Udacity training course.
 
 ## Design choices
 
-About the session:
+About the Session part:
+
+The sessions have theese attribute:
+ 1- endpoint:
+   - createSession
+   - getSessionsBySpeaker
+   - getConferenceSessionsByType
+   - getConferenceSessions
+ 2-
+
+
 About the speaker: The app save the speakers of the sessions in an array of string.
 In this way the implementation is very easy. The method to get all the sessions
 of a specific speaker is very short:
