@@ -52,6 +52,7 @@ API_EXPLORER_CLIENT_ID = endpoints.API_EXPLORER_CLIENT_ID
 MEMCACHE_ANNOUNCEMENTS_KEY = "RECENT_ANNOUNCEMENTS"
 ANNOUNCEMENT_TPL = ('Last chance to attend! The following conferences '
                     'are nearly sold out: %s')
+# SPEAKER_MEMCACHE_KEY
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 DEFAULTS = {
@@ -734,6 +735,9 @@ class ConferenceApi(remote.Service):
         """ Creates a new session for a conference"""
         return self._createSessionObject(request)
 
+
+# TASK 2 - -  - - - - - - - - - -  - - - - - - - - - -  - - - - - -  - - - -- - -  - -
+
     @endpoints.method(WISHLIST_POST_REQUEST, BooleanMessage,
             path='sessions/{websafeSessionKey}/wishlist',
             http_method='POST', name='addSessionToWishlist')
@@ -776,7 +780,32 @@ class ConferenceApi(remote.Service):
             items=[self._copySessionToForm(sess) for sess in sessions]
         )
 
+    @endpoints.method(WISHLIST_POST_REQUEST, BooleanMessage,
+            path='sessions/{websafeSessionKey}/deletefromwishlist',
+            http_method='POST', name='deleteSessionInWishlist')
+    def deleteSessionInWishlist(self, request):
+        """ Delete a given session from the user's wishlist """
+        deleted = None
+        prof = self._getProfileFromUser()  # get user Profile
+
+        # Take the session
+        wssk = request.websafeSessionKey
+        sess = ndb.Key(urlsafe=wssk).get()
+
+        # check if the session exists
+        if not sess:
+            raise endpoints.NotFoundException('No session found with key: %s' % wssk)
+
+        # check if session is already on the user wishlist
+        if wssk in prof.wishlist:
+            prof.wishlist.remove(wssk)
+            deleted = True
+
+        prof.put()
+        return BooleanMessage(data=deleted)
+
 # TASK 3 - -  - - - - - - - - - -  - - - - - - - - - -  - - - - - -  - - - -- - -  - -
+
     @endpoints.method(SESSION_OF_CONF_BY_SPEAKER_GET_REQUEST, SessionForms,
             path='conference/{websafeConferenceKey}/sessions/bySpeaker',
             http_method='GET', name='getConferenceSessionsBySpeaker')
@@ -818,8 +847,8 @@ class ConferenceApi(remote.Service):
         return BooleanMessage(data=free)
 
     @endpoints.method(message_types.VoidMessage, SessionForms,
-                      path='noWorkshopAndBeforeSeven', http_method='GET',
-                      name='noWorkshopAndBeforeSeven')
+            path='noWorkshopAndBeforeSeven', http_method='GET',
+            name='noWorkshopAndBeforeSeven')
     def noWorkshopAndBeforeSeven(self, request):
         """ Get all sessions before 7pm and without workshop"""
         sessions = Session.query()
@@ -837,23 +866,10 @@ class ConferenceApi(remote.Service):
             items=[self._copySessionToForm(session) for session in final_sessions]
         )
 
+
 # TASK 4 - -  - - - - - - - - - -  - - - - - - - - - -  - - - - - -  - - - -- - -  - -
 
-    @endpoints.method(CONF_GET_REQUEST, StringMessage,
-            path='conference/session/speaker',
-            http_method='GET', name='getFeaturedSpeaker')
-    def getFeaturedSpeaker(self, request):
-        """ Store in memcache a speaker"""
-        # Take the conf
-        wsck = request.websafeConferenceKey
-        conf = ndb.Key(urlsafe=wsck).get()
-        # Check if conf exists
-        if not conf:
-            raise endpoints.NotFoundException('No conference found with key: %s' % wsck)
 
-        MEMCACHE_CONFERENCE_KEY = "FEATURED:%s" % wsck
-        return StringMessage(
-            data=memcache.get(MEMCACHE_CONFERENCE_KEY) or "No featured speakers."
-        )
+
 
 api = endpoints.api_server([ConferenceApi]) # register API
