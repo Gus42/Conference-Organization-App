@@ -825,15 +825,35 @@ class ConferenceApi(remote.Service):
         sessions = Session.query()
         # First filter
         sessions = sessions.filter(
-            Session.startTime <= datetime.strptime("7:00 pm", "%I:%M %p").time())
+            Session.startTime <= datetime.strptime("7:00 pm", "%I:%M %p").time()
+        )
+        final_sessions = []
         # Second "filter"
         for session in sessions:
-            if session.typeOfSession == "Workshop":
-                sessions.remove(session)
+            if not any(t == "Workshop" for t in session.typeOfSession):
+                final_sessions.append(session)
 
         return SessionForms(
-            items=[self._copySessionToForm(session) for session in sessions]
+            items=[self._copySessionToForm(session) for session in final_sessions]
         )
 
+# TASK 4 - -  - - - - - - - - - -  - - - - - - - - - -  - - - - - -  - - - -- - -  - -
+
+    @endpoints.method(CONF_GET_REQUEST, StringMessage,
+            path='conference/session/speaker',
+            http_method='GET', name='getFeaturedSpeaker')
+    def getFeaturedSpeaker(self, request):
+        """ Store in memcache a speaker"""
+        # Take the conf
+        wsck = request.websafeConferenceKey
+        conf = ndb.Key(urlsafe=wsck).get()
+        # Check if conf exists
+        if not conf:
+            raise endpoints.NotFoundException('No conference found with key: %s' % wsck)
+
+        MEMCACHE_CONFERENCE_KEY = "FEATURED:%s" % wsck
+        return StringMessage(
+            data=memcache.get(MEMCACHE_CONFERENCE_KEY) or "No featured speakers."
+        )
 
 api = endpoints.api_server([ConferenceApi]) # register API
