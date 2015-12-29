@@ -101,6 +101,11 @@ SESSION_GET_REQUEST = endpoints.ResourceContainer(
     websafeConferenceKey=messages.StringField(1),
 )
 
+SPEC_SESSION_GET_REQUEST = endpoints.ResourceContainer(
+    message_types.VoidMessage,
+    websafeSessionKey=messages.StringField(1),
+)
+
 SESSION_BY_TYPE_GET_REQUEST = endpoints.ResourceContainer(
     typeOfSession=messages.StringField(1),
     websafeConferenceKey=messages.StringField(2),
@@ -782,6 +787,52 @@ class ConferenceApi(remote.Service):
         sessions = sessions.filter(Session.speaker == request.speaker)
         return SessionForms(
             items=[self._copySessionToForm(sess) for sess in sessions]
+        )
+
+    @endpoints.method(SPEC_SESSION_GET_REQUEST, BooleanMessage,
+            path='sessions/{websafeSessionKey}/seats',
+            http_method='GET', name='getSeatsAvailableInSession')
+    def getSeatsAvailableInSession(self, request):
+        """ Get the availability of a conference given the session """
+        free = None
+        prof = self._getProfileFromUser()  # get user Profile
+
+        # Take the session
+        wssk = request.websafeSessionKey
+        sess = ndb.Key(urlsafe=wssk).get()
+
+        # check if the session exists
+        if not sess:
+            raise endpoints.NotFoundException('No session found with key: %s' % wssk)
+
+        # Take the conference
+        conf_key = sess.key.parent()
+        conf = conf_key.get()
+
+        # Check if the conference has seats available
+        if conf.seatsAvailable > 0:
+            free = True
+        else:
+            free = False
+
+        return BooleanMessage(data=free)
+
+    @endpoints.method(message_types.VoidMessage, SessionForms,
+                      path='noWorkshopAndBeforeSeven', http_method='GET',
+                      name='noWorkshopAndBeforeSeven')
+    def noWorkshopAndBeforeSeven(self, request):
+        """ Get all sessions before 7pm and without workshop"""
+        sessions = Session.query()
+        # First filter
+        sessions = sessions.filter(
+            Session.startTime <= datetime.strptime("7:00 pm", "%I:%M %p").time())
+        # Second "filter"
+        for session in sessions:
+            if session.typeOfSession == "Workshop":
+                sessions.remove(session)
+
+        return SessionForms(
+            items=[self._copySessionToForm(session) for session in sessions]
         )
 
 
