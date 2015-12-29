@@ -30,3 +30,13 @@ App Engine application for the Udacity training course.
 [4]: https://console.developers.google.com/
 [5]: https://localhost:8080/
 [6]: https://developers.google.com/appengine/docs/python/endpoints/endpoints_tool
+
+## Design choices
+
+About the session:
+About the speaker: The app save the speakers of the sessions in an array of string.
+In this way the implementation is very easy. The method to get all the sessions
+of a specific speaker is very short:
+	allSess = Session.query()
+    allSess = allSess.filter(Session.speaker == request.speaker)
+About the wishlist:

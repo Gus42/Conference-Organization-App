@@ -668,8 +668,6 @@ class ConferenceApi(remote.Service):
         if data['duration']:
             data['duration'] = datetime.strptime(data['duration'][:5],"%H:%M").time()
 
-        #TODO: About the speaker if...
-
         # generate Conf Key based on conf ID and Session
         # ID based on Conf key get Session key from ID
         conf_key = conf.key
@@ -704,9 +702,6 @@ class ConferenceApi(remote.Service):
             items=[self._copySessionToForm(sess) for sess in sessions]
         )
 
-    # TODO: the return should be all the session of the speaker in all the conference
-    # So here, is not ok..
-    # Can look in all conference or store all session in the class Speaker
     @endpoints.method(SESSION_BY_SPEAKER_GET_REQUEST, SessionForms,
             path='conference/sessions/bySpeaker',
             http_method='GET', name='getConferenceSessionsBySpeaker')
@@ -714,13 +709,6 @@ class ConferenceApi(remote.Service):
         """ Gets all the sessions of a specified speaker"""
         allSess = Session.query()
         allSess = allSess.filter(Session.speaker == request.speaker)
-        #sessions = []
-        #for session in allSess:
-        #    session = session.filter(Session.speaker == request.speaker)
-        #    sessions.append(session)
-        #sessions = self._getConferenceSessions(request)
-        # filter by requested speaker
-        #sessions = sessions.filter(Session.speaker == request.speaker)
         return SessionForms(
             items=[self._copySessionToForm(sess) for sess in allSess]
         )
@@ -731,6 +719,13 @@ class ConferenceApi(remote.Service):
     def createSession(self, request):
         """ Creates a new session for a conference"""
         return self._createSessionObject(request)
+
+# TODO: addSessionToWishlist(SessionKey)
+
+# TODO: getSessionsInWishlist()
+
+
+
 
 
 api = endpoints.api_server([ConferenceApi]) # register API
