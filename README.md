@@ -39,4 +39,3 @@ In this way the implementation is very easy. The method to get all the sessions
 of a specific speaker is very short:
 	allSess = Session.query()
     allSess = allSess.filter(Session.speaker == request.speaker)
-About the wishlist:
