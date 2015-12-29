@@ -110,6 +110,11 @@ SESSION_BY_SPEAKER_GET_REQUEST = endpoints.ResourceContainer(
     speaker=messages.StringField(1),
 )
 
+SESSION_OF_CONF_BY_SPEAKER_GET_REQUEST = endpoints.ResourceContainer(
+    websafeConferenceKey=messages.StringField(1),
+    speaker=messages.StringField(2),
+)
+
 SESSION_POST_REQUEST = endpoints.ResourceContainer(
     SessionForm,
     websafeConferenceKey=messages.StringField(1),
@@ -707,9 +712,9 @@ class ConferenceApi(remote.Service):
         )
 
     @endpoints.method(SESSION_BY_SPEAKER_GET_REQUEST, SessionForms,
-            path='conference/sessions/bySpeaker',
-            http_method='GET', name='getConferenceSessionsBySpeaker')
-    def getConferenceSessionsBySpeaker(self, request):
+            path='sessions/bySpeaker',
+            http_method='GET', name='getSessionsBySpeaker')
+    def getSessionsBySpeaker(self, request):
         """ Gets all the sessions of a specified speaker"""
         allSess = Session.query()
         allSess = allSess.filter(Session.speaker == request.speaker)
@@ -766,7 +771,18 @@ class ConferenceApi(remote.Service):
             items=[self._copySessionToForm(sess) for sess in sessions]
         )
 
-
+# TASK 3 - -  - - - - - - - - - -  - - - - - - - - - -  - - - - - -  - - - -- - -  - -
+    @endpoints.method(SESSION_OF_CONF_BY_SPEAKER_GET_REQUEST, SessionForms,
+            path='conference/{websafeConferenceKey}/sessions/bySpeaker',
+            http_method='GET', name='getConferenceSessionsBySpeaker')
+    def getConferenceSessionsBySpeaker(self, request):
+        """ Gets all the sessions of a specified speaker, in the given conference"""
+        sessions = self._getConferenceSessions(request)
+        # filter by requested speaker
+        sessions = sessions.filter(Session.speaker == request.speaker)
+        return SessionForms(
+            items=[self._copySessionToForm(sess) for sess in sessions]
+        )
 
 
 api = endpoints.api_server([ConferenceApi]) # register API
