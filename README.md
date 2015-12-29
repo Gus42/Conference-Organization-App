@@ -1,4 +1,11 @@
-App Engine application for the Udacity training course.
+# Conference-Organization-App
+Udacity P4, Full Stack - First time with App Engine
+
+date: 29/12/2015
+
+Conference-Organization-App is the fourth project of Full Stack Web Developer Nanodegree of Udacity.
+In this project I used Python, and the App Engine of google. 
+The objective of the work was develop an API for the application.
 
 ## Products
 - [App Engine][1]
@@ -31,18 +38,19 @@ App Engine application for the Udacity training course.
 [5]: https://localhost:8080/
 [6]: https://developers.google.com/appengine/docs/python/endpoints/endpoints_tool
 
-## Design choices
+## Design Decisions
 
-About the Session part:
-
-The sessions have theese attribute:
- 1- endpoint:
-   - createSession
-   - getSessionsBySpeaker
-   - getConferenceSessionsByType
-   - getConferenceSessions
- 2-
-
+The Session kind:
+It has the following parameter:
+    name 
+    highlights  
+    speaker
+    duration
+    typeOfSession
+    date 
+    startTime
+    location 
+Session is a child of Conference.
 
 About the speaker: The app save the speakers of the sessions in an array of string.
 In this way the implementation is very easy. The method to get all the sessions
