@@ -52,7 +52,7 @@ API_EXPLORER_CLIENT_ID = endpoints.API_EXPLORER_CLIENT_ID
 MEMCACHE_ANNOUNCEMENTS_KEY = "RECENT_ANNOUNCEMENTS"
 ANNOUNCEMENT_TPL = ('Last chance to attend! The following conferences '
                     'are nearly sold out: %s')
-# SPEAKER_MEMCACHE_KEY
+MEMCACHE_FEATURED_SPEAKER_KEY = "FEATURED_SPEAKER"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 DEFAULTS = {
@@ -649,7 +649,7 @@ class ConferenceApi(remote.Service):
             raise endpoints.UnauthorizedException('Authorization required')
         user_id = getUserId(user)
 
-         # Check that session ha a name
+         # Check that session has a name
         if not request.name:
             raise endpoints.BadRequestException("Session 'name' field required")
 
@@ -690,9 +690,23 @@ class ConferenceApi(remote.Service):
         sess_key = ndb.Key(Session, sess_id, parent=conf_key)
         data['key'] = sess_key
 
-        # create Conference & return (modified) SessionForm
+        # create Session & return (modified) SessionForm
         Session(**data).put()
         sess = sess_key.get()
+
+        # Check if the speaker has more then one session and create a task queue
+        if data['speaker']:
+            sessions = self._getConferenceSessions(request)
+            for s in sessions:
+                for speak in s.speaker:
+                    if speak in data['speaker']:
+                        # if the speaker is in more than one session, we are here
+                        taskqueue.add(
+                            params = {'websafeConferenceKey': request.websafeConferenceKey,
+                                       'speaker': data['speaker']},
+                            url = '/tasks/set_featured_speaker'
+                        )
+
         return self._copySessionToForm(sess)
 
     @endpoints.method(SESSION_GET_REQUEST, SessionForms,
@@ -869,7 +883,39 @@ class ConferenceApi(remote.Service):
 
 # TASK 4 - -  - - - - - - - - - -  - - - - - - - - - -  - - - - - -  - - - -- - -  - -
 
+    @staticmethod
+    def _cacheFeaturedSpeaker(websafeConferenceKey, speaker):
+        """Create Featured Speaker & assign to memcache."""
+        # Get all sessions of the speaker
+        sessions = Session.query(Session.speaker == speaker)
 
+        # save in a string the list of the sessions names
+        sf = SessionForm()
+        string = ''
+        for sess in sessions:
+            for field in sf.all_fields():
+                if field.name == 'name':
+                    string += str(getattr(sess, field.name))
+                    string += ","
+
+        # Speaker and his sessions
+        featured_speaker = {'speaker': speaker, 'sessions': string }
+        featured = str(featured_speaker)
+
+        # store in memcache
+        memcache.set(MEMCACHE_FEATURED_SPEAKER_KEY, featured)
+        return featured
+
+    @endpoints.method(message_types.VoidMessage, StringMessage,
+            path='getFeaturedSpeaker',
+            http_method='GET', name='getFeaturedSpeaker')
+    def getFeaturedSpeaker(self, request):
+        """Return Featured Speaker from memcache."""
+        # return an existing Featured Speaker from Memcache or an empty string.
+        featured = memcache.get(MEMCACHE_FEATURED_SPEAKER_KEY)
+        if not featured:
+            featured = ""
+        return StringMessage(data=featured)
 
 
 api = endpoints.api_server([ConferenceApi]) # register API
