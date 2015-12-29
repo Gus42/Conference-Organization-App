@@ -724,7 +724,6 @@ class ConferenceApi(remote.Service):
         """ Creates a new session for a conference"""
         return self._createSessionObject(request)
 
-# TODO: addSessionToWishlist(SessionKey)
     @endpoints.method(WISHLIST_POST_REQUEST, BooleanMessage,
             path='sessions/{websafeSessionKey}/wishlist',
             http_method='POST', name='addSessionToWishlist')
@@ -751,8 +750,21 @@ class ConferenceApi(remote.Service):
         prof.put()
         return BooleanMessage(data=inserted)
 
-# TODO: getSessionsInWishlist()
+    @endpoints.method(message_types.VoidMessage, SessionForms,
+            path='wishlist',
+            http_method='GET', name='getSessionsInWishlist')
+    def getSessionsInWishlist(self, request):
+        """Get list of sessions that user has put in his wishlist."""
+        prof = self._getProfileFromUser()  # get user profile
 
+        # get the wishlist sessions from profile.
+        sessions_keys = [ndb.Key(urlsafe=wssk) for wssk in prof.wishlist]
+        sessions = ndb.get_multi(sessions_keys)
+
+        # return set of SessionForm objects per Session
+        return SessionForms(
+            items=[self._copySessionToForm(sess) for sess in sessions]
+        )
 
 
 
