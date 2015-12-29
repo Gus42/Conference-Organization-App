@@ -115,6 +115,10 @@ SESSION_POST_REQUEST = endpoints.ResourceContainer(
     websafeConferenceKey=messages.StringField(1),
 )
 
+WISHLIST_POST_REQUEST = endpoints.ResourceContainer(
+    message_types.VoidMessage,
+    websafeSessionKey=messages.StringField(1)
+)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -721,6 +725,31 @@ class ConferenceApi(remote.Service):
         return self._createSessionObject(request)
 
 # TODO: addSessionToWishlist(SessionKey)
+    @endpoints.method(WISHLIST_POST_REQUEST, BooleanMessage,
+            path='sessions/{websafeSessionKey}/wishlist',
+            http_method='POST', name='addSessionToWishlist')
+    def addSessionToWishlist(self, request):
+        """ Add a given session to the user's wishlist """
+        inserted = None
+        prof = self._getProfileFromUser()  # get user Profile
+
+        # Take the session
+        wssk = request.websafeSessionKey
+        sess = ndb.Key(urlsafe=wssk).get()
+
+        # check if the session exists
+        if not sess:
+            raise endpoints.NotFoundException('No session found with key: %s' % wssk)
+
+        # check if session is already on the user wishlist
+        if wssk in prof.wishlist:
+            raise ConflictException("This session is already on your wishlist.")
+
+        # Add session
+        prof.wishlist.append(wssk)
+        inserted = True
+        prof.put()
+        return BooleanMessage(data=inserted)
 
 # TODO: getSessionsInWishlist()
 
