@@ -108,7 +108,6 @@ SESSION_BY_TYPE_GET_REQUEST = endpoints.ResourceContainer(
 
 SESSION_BY_SPEAKER_GET_REQUEST = endpoints.ResourceContainer(
     speaker=messages.StringField(1),
-    websafeConferenceKey=messages.StringField(2),
 )
 
 SESSION_POST_REQUEST = endpoints.ResourceContainer(
@@ -709,15 +708,21 @@ class ConferenceApi(remote.Service):
     # So here, is not ok..
     # Can look in all conference or store all session in the class Speaker
     @endpoints.method(SESSION_BY_SPEAKER_GET_REQUEST, SessionForms,
-            path='conference/{websafeConferenceKey}/sessions/bySpeaker',
+            path='conference/sessions/bySpeaker',
             http_method='GET', name='getConferenceSessionsBySpeaker')
     def getConferenceSessionsBySpeaker(self, request):
-        """ Gets all the sessions of a specified speaker, in the given conference"""
-        sessions = self._getConferenceSessions(request)
+        """ Gets all the sessions of a specified speaker"""
+        allSess = Session.query()
+        allSess = allSess.filter(Session.speaker == request.speaker)
+        #sessions = []
+        #for session in allSess:
+        #    session = session.filter(Session.speaker == request.speaker)
+        #    sessions.append(session)
+        #sessions = self._getConferenceSessions(request)
         # filter by requested speaker
-        sessions = sessions.filter(Session.speaker == request.speaker)
+        #sessions = sessions.filter(Session.speaker == request.speaker)
         return SessionForms(
-            items=[self._copySessionToForm(sess) for sess in sessions]
+            items=[self._copySessionToForm(sess) for sess in allSess]
         )
 
     @endpoints.method(SESSION_POST_REQUEST, SessionForm,
