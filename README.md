@@ -41,16 +41,10 @@ The objective of the work was develop an API for the application.
 ## Design Decisions
 
 The Session kind:
-It has the following parameter:
-    name 
-    highlights  
-    speaker
-    duration
-    typeOfSession
-    date 
-    startTime
-    location 
-Session is a child of Conference.
+It has in particular the following parameter: name, speaker[], typeOfSession[].
+Because of the class SessionForm, Session is a child of Conference, it can't be created without a conference key.
+
+
 
 About the speaker: The app save the speakers of the sessions in an array of string.
 In this way the implementation is very easy. The method to get all the sessions
