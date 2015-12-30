@@ -51,21 +51,18 @@ and it is transformed in `SessionForm` obj by `_copySessionToForm`.
 - The `name` of the sessios is require.
 - The `speaker[]`, is an array of string, is not an array of entity of the kind Speaker.
 I have not implemented the kind Speaker.
+
 Pros: Faster implementation. eg: The method to get all the sessions:
 	`allSess = Session.query()`
         `allSess = allSess.filter(Session.speaker == request.speaker)`
       There isn't keys, so the implementation of it is very easy.
+      
 Cons: Bad control of it, in my implementation the name of a speaker is unique. 
       There isn't the possibility of 2 speacker with the same name.
       Also, the implementation of the kind speaker offers more possibilities then mine.
 The function `getSessionsBySpeaker` filter by `speaker[]`
 - The function `getConferenceSessionsByType` filter by `typeOfSession[]`
 
-About the speaker: The app save the speakers of the sessions in an array of string.
-In this way the implementation is very easy. The method to get all the sessions
-of a specific speaker is very short:
-	allSess = Session.query()
-    allSess = allSess.filter(Session.speaker == request.speaker)
 
 
 
