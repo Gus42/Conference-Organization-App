@@ -42,7 +42,7 @@ The objective of the work was develop an API for the application.
 ## Design Decisions
 (I hope that my English is understandable)
 
-The `Session` kind:
+The `Session` kind, and the `Speaker` string:
 
 It has in particular the following parameter: `name`, `speaker[]`, `typeOfSession[]`.
 Because of the `class SessionForm`, Session is a child of Conference, it can't be created without a conference key.
@@ -66,3 +66,20 @@ In this way the implementation is very easy. The method to get all the sessions
 of a specific speaker is very short:
 	allSess = Session.query()
     allSess = allSess.filter(Session.speaker == request.speaker)
+
+
+
+The query to solve:
+My solution is at the endpoint `noWorkshopAndBeforeSeven`.
+The problem was that with the non-sql database(datastore), 
+you can't filter two different properties with inequality filters.
+You can use the inequality filter only in one property. It's a problem with indexes.
+My solution is to use the inequality filter in a proprierty (startTime before 7pm). 
+And then use the equality filter (==) on the other property, to exclude it from the list of results.
+
+
+
+
+Author: Francesco Gusella
+
+Contacts: gus815@gmail.com
