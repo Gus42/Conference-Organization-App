@@ -41,7 +41,9 @@ The objective of the work was develop an API for the application.
 
 ## Design Decisions
 (I hope that my English is understandable)
+
 The `Session` kind:
+
 It has in particular the following parameter: `name`, `speaker[]`, `typeOfSession[]`.
 Because of the `class SessionForm`, Session is a child of Conference, it can't be created without a conference key.
 A new session is created with the endpoint `createSession` that call `_createSessionObject` 
@@ -49,7 +51,10 @@ and it is transformed in `SessionForm` obj by `_copySessionToForm`.
 - The `name` of the sessios is require.
 - The `speaker[]`, is an array of string, is not an array of entity of the kind Speaker.
 I have not implemented the kind Speaker.
-Pros: Faster implementation
+Pros: Faster implementation. eg: The method to get all the sessions:
+	`allSess = Session.query()`
+        `allSess = allSess.filter(Session.speaker == request.speaker)`
+      There isn't keys, so the implementation of it is very easy.
 Cons: Bad control of it, in my implementation the name of a speaker is unique. 
       There isn't the possibility of 2 speacker with the same name.
       Also, the implementation of the kind speaker offers more possibilities then mine.
