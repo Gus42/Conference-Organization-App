@@ -38,13 +38,23 @@ The objective of the work was develop an API for the application.
 [5]: https://localhost:8080/
 [6]: https://developers.google.com/appengine/docs/python/endpoints/endpoints_tool
 
+
 ## Design Decisions
-
-The Session kind:
-It has in particular the following parameter: name, speaker[], typeOfSession[].
-Because of the class SessionForm, Session is a child of Conference, it can't be created without a conference key.
-
-
+(I hope that my English is understandable)
+The `Session` kind:
+It has in particular the following parameter: `name`, `speaker[]`, `typeOfSession[]`.
+Because of the `class SessionForm`, Session is a child of Conference, it can't be created without a conference key.
+A new session is created with the endpoint `createSession` that call `_createSessionObject` 
+and it is transformed in `SessionForm` obj by `_copySessionToForm`.
+- The `name` of the sessios is require.
+- The `speaker[]`, is an array of string, is not an array of entity of the kind Speaker.
+I have not implemented the kind Speaker.
+Pros: Faster implementation
+Cons: Bad control of it, in my implementation the name of a speaker is unique. 
+      There isn't the possibility of 2 speacker with the same name.
+      Also, the implementation of the kind speaker offers more possibilities then mine.
+The function `getSessionsBySpeaker` filter by `speaker[]`
+- The function `getConferenceSessionsByType` filter by `typeOfSession[]`
 
 About the speaker: The app save the speakers of the sessions in an array of string.
 In this way the implementation is very easy. The method to get all the sessions
