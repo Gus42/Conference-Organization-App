@@ -42,7 +42,7 @@ The objective of the work was develop an API for the application.
 ## Design Decisions
 (I hope that my English is understandable)
 
-The `Session` kind, and the `Speaker` string:
+# The `Session` kind, and the `Speaker` string:
 
 It has in particular the following parameter: `name`, `speaker[]`, `typeOfSession[]`.
 Because of the `class SessionForm`, Session is a child of Conference, it can't be created without a conference key.
@@ -66,7 +66,8 @@ The function `getSessionsBySpeaker` filter by `speaker[]`
 
 
 
-The query to solve:
+# The query to solve:
+
 My solution is at the endpoint `noWorkshopAndBeforeSeven`.
 The problem was that with the non-sql database(datastore), 
 you can't filter two different properties with inequality filters.
