@@ -606,11 +606,7 @@ class ConferenceApi(remote.Service):
         for field in sf.all_fields():
             if hasattr(sess, field.name):
                 # Convert date, duration and startTime to string
-                if field.name == 'date':
-                    setattr(sf, field.name, str(getattr(sess, field.name)))
-                elif field.name == 'startTime':
-                    setattr(sf, field.name, str(getattr(sess, field.name)))
-                elif field.name == 'duration':
+                if field.name in ('date', 'startTime', 'duration'):
                     setattr(sf, field.name, str(getattr(sess, field.name)))
                 # Just copy the other fields that are already strings
                 else:
@@ -683,17 +679,6 @@ class ConferenceApi(remote.Service):
         if data['duration']:
             data['duration'] = datetime.strptime(data['duration'][:5],"%H:%M").time()
 
-        # generate Conf Key based on conf ID and Session
-        # ID based on Conf key get Session key from ID
-        conf_key = conf.key
-        sess_id = Session.allocate_ids(size=1, parent=conf_key)[0]
-        sess_key = ndb.Key(Session, sess_id, parent=conf_key)
-        data['key'] = sess_key
-
-        # create Session & return (modified) SessionForm
-        Session(**data).put()
-        sess = sess_key.get()
-
         # Check if the speaker has more then one session and create a task queue
         if data['speaker']:
             sessions = self._getConferenceSessions(request)
@@ -706,6 +691,17 @@ class ConferenceApi(remote.Service):
                                        'speaker': data['speaker']},
                             url = '/tasks/set_featured_speaker'
                         )
+
+        # generate Conf Key based on conf ID and Session
+        # ID based on Conf key get Session key from ID
+        conf_key = conf.key
+        sess_id = Session.allocate_ids(size=1, parent=conf_key)[0]
+        sess_key = ndb.Key(Session, sess_id, parent=conf_key)
+        data['key'] = sess_key
+
+        # create Session & return (modified) SessionForm
+        Session(**data).put()
+        sess = sess_key.get()
 
         return self._copySessionToForm(sess)
 
@@ -763,6 +759,10 @@ class ConferenceApi(remote.Service):
         # Take the session
         wssk = request.websafeSessionKey
         sess = ndb.Key(urlsafe=wssk).get()
+
+        # check if sess is a session object
+        if not type(sess) is (Session):
+            raise endpoints.NotFoundException('No session found with key: %s' % wssk)
 
         # check if the session exists
         if not sess:
