@@ -796,7 +796,7 @@ class ConferenceApi(remote.Service):
 
     @endpoints.method(WISHLIST_POST_REQUEST, BooleanMessage,
             path='sessions/{websafeSessionKey}/deletefromwishlist',
-            http_method='POST', name='deleteSessionInWishlist')
+            http_method='DELETE', name='deleteSessionInWishlist')
     def deleteSessionInWishlist(self, request):
         """ Delete a given session from the user's wishlist """
         deleted = None
@@ -870,11 +870,9 @@ class ConferenceApi(remote.Service):
         sessions = sessions.filter(
             Session.startTime <= datetime.strptime("7:00 pm", "%I:%M %p").time()
         )
-        final_sessions = []
-        # Second "filter"
-        for session in sessions:
-            if not any(t == "Workshop" for t in session.typeOfSession):
-                final_sessions.append(session)
+
+        final_sessions = [session for session in sessions
+                if 'Workshop' not in session.typeOfSession]
 
         return SessionForms(
             items=[self._copySessionToForm(session) for session in final_sessions]
