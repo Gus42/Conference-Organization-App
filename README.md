@@ -62,7 +62,7 @@ Cons: Bad control of it, in my implementation the name of a speaker is unique.
       Also, the implementation of the kind speaker offers more possibilities then mine.
 The function `getSessionsBySpeaker` filter by `speaker[]`
 - The function `getConferenceSessionsByType` filter by `typeOfSession[]`
-
+- All parameter are String property, except for duration and startTime that are time property and date that is a date property. In this way you can use inequality filter in theese property.
 
 
 ### The other 2 queries:
@@ -78,9 +78,13 @@ My solution is at the endpoint `noWorkshopAndBeforeSeven`.
 The problem was that with the non-sql database(datastore), 
 you can't filter two different properties with inequality filters.
 You can use the inequality filter only in one property. It's a problem with indexes.
-My solution is to use the inequality filter in a proprierty (startTime before 7pm). 
-And then use the equality filter (==) on the other property, to exclude it from the list of results.
-
+My solution is to query all sessions:
+`sessions = Session.query()`
+Then filter by the startTime parameter:
+`Session.startTime <= datetime.strptime("7:00 pm", "%I:%M %p").time()`
+So now from this results I have to take only the ones that don't contains workshop in their typeOfSessions:
+`final_sessions = [session for session in sessions if 'Workshop' not in session.typeOfSession]`
+Then the results return as SessionForms.
 
 
 
