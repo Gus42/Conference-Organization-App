@@ -67,8 +67,8 @@ The function `getSessionsBySpeaker` filter by `speaker[]`
 
 ### The other 2 queries:
 
-- getConferenceSessionsBySpeaker, it's like getSessionsBySpeaker but it returns the only sessions of a specific conference.
-- getSeatsAvailableInSession, I thought about the session wishlist. Maybe a user has entered in its wishlist a session, but this session is not a session of a joined conference. So the method provides an easy answer to the user who wonders whether the conference with the session in wishlist, has seats available. 
+- `getConferenceSessionsBySpeaker`, it's like getSessionsBySpeaker but it returns the only sessions of a specific conference.
+- `getSeatsAvailableInSession`, I thought about the session wishlist. Maybe a user has entered in its wishlist a session, but this session is not a session of a joined conference. So the method provides an easy answer to the user who wonders whether the conference with the session in wishlist, has seats available. 
 
 
 
