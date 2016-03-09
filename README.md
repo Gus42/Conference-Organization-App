@@ -4,8 +4,9 @@ Udacity P4, Full Stack - First time with App Engine
 date: 29/12/2015
 
 Conference-Organization-App is the fourth project of Full Stack Web Developer Nanodegree of Udacity.
-In this project I used Python, and the App Engine of google. 
+In this project I used Python, and the App Engine of Google. 
 The objective of the work was develop an API for the application.
+The app is online here: https://full-stack-4.appspot.com/
 
 ## Products
 - [App Engine][1]
